@@ -1,0 +1,17 @@
+aiohttp==3.6.3
+aiohttp-swagger==1.0.9
+aiohttp_session==2.9.0
+aiohttp_cors==0.7.0
+attrs==19.3.0
+jinja2==2.11.3
+MarkupSafe==1.1.1
+typing_extensions==3.7.4.3
+idna==3.3
+idna_ssl==1.1.0
+multidict==4.7.6
+# yarl==1.5.1
+# PyYAML==5.3.1
+setuptools==50.3.2
+cryptography==3.2.1
+cffi
+pycparser

@@ -1,0 +1,87 @@
+---
+swagger: '2.0'
+basePath: /api
+info:
+  title: Compose manager API.
+  version: 1.0.0
+paths:
+  /plugins:
+    get:
+      operationId: getPlugins
+  /repository:
+    get:
+      operationId: getRepositories
+    post:
+      operationId: addRepository
+      parameters:
+      - name: url
+        in: body
+        required: true
+        type: string
+  /plugins/{plugin}:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    get:
+      opertionId: getPlugin
+    delete:
+      operationId: removePlugin
+  /plugins/{plugin}/start:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    post:
+      operationId: startPlugin
+  /plugins/{plugin}/stop:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    post:
+      operationId: stopPlugin
+  /plugins/{plugin}/restart:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    post:
+      operationId: restartPlugin
+  /plugins/{plugin}/environment:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    get:
+      opertionId: getPluginEnvironment
+  /plugins/{plugin}/environment/{name}:
+    parameters:
+    - name: plugin
+      default: nms
+      in: path
+      required: true
+      type: string
+    - name: name
+      in: path
+      required: true
+      type: string
+    get:
+      operationId: getPluginEnvironmentValue
+    post:
+      parameters:
+      - name: value
+        in: body
+        required: true
+        type: string
+      opertionId: setPluginEnvironmentValue

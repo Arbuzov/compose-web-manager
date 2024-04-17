@@ -1,0 +1,19 @@
+[Unit]
+Description=SBC web manager all in one service
+After=network.target
+Wants=network.target
+
+[Service]
+WorkingDirectory=/usr/lib/python3/dist-packages/compose_web_manager
+Type=simple
+ExecStart=/usr/bin/compose-web-manager
+Restart=always
+LimitNOFILE=infinity
+LimitCORE=infinity
+StandardInput=null
+StandardOutput=syslog
+StandardError=syslog
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
