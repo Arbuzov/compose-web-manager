@@ -8,6 +8,15 @@ _LOGGER.setLevel(logging.DEBUG)
 SB_COMPOSE_ROOT = '/usr/share/spacebridge/docker'
 SB_REPO_LIST = '/usr/share/spacebridge/docker/repo_list.json'
 
+def dict_from_file(file_path):
+  result = {}
+  if os.path.exists(file_path):
+    with open(file_path) as f:
+      for line in f:
+        key, value = line.split('=')
+        result[key] = value.strip()
+  return result
+
 def list_plugins(request):
   result=[]
   with os.scandir(SB_COMPOSE_ROOT) as it:
@@ -31,11 +40,7 @@ def get_plugin(request):
   if os.path.exists(compose_path):
     with open(compose_path) as f:
       result['compose'] = f.read()
-  if os.path.exists(env_path):
-    with open(env_path) as f:
-      for line in f:
-        key, value = line.split('=')
-        result['environment'][key] = value.strip()
+  result['environment'] = dict_from_file(env_path)
   if os.path.exists(readme_path):
     with open(readme_path) as f:
       result['readme'] = f.read()
@@ -71,10 +76,7 @@ def get_plugin_environment(request):
   plugin = request.match_info['plugin']
   env_path = f'{SB_COMPOSE_ROOT}/{plugin}/.env'
   if os.path.exists(env_path):
-    with open(env_path) as f:
-      for line in f:
-        key, value = line.split('=')
-        result[key] = value.strip()
+    result = dict_from_file(env_path)
   return web.json_response(result)
 
 def get_plugin_variable(request):
@@ -101,8 +103,11 @@ async def set_plugin_variable(request):
       f.write('')
       f.close()
   if os.path.exists(env_path):
-    with open(env_path, 'a') as f:
-      f.write(f'{name}={data}\n')
+    vars = dict_from_file(env_path)
+    vars[name] = data
+    with open(env_path, 'w') as f:
+      for key, value in vars.items():
+        f.write(f'{key}={value}\n')
   return web.json_response({'status': 'ok'})
 
 def get_repo_list(request):
@@ -112,7 +117,7 @@ def get_repo_list(request):
       result = json.load(f)
   return web.json_response(result)
 
-def add_repo(request):
+async def add_repo(request):
   data = await request.text()
   logging.debug(f'Adding repo {data}')
   if os.path.exists(SB_REPO_LIST):
