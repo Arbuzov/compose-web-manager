@@ -1,7 +1,7 @@
 """This module works as proxy connector to import confd or sysrepo connection"""
 import logging
 
-__all__ = ('Storage', 'all_tasks', 'current_task')
+__all__ = ('all_tasks', 'current_task')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
