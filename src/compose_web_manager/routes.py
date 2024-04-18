@@ -103,10 +103,10 @@ async def set_plugin_variable(request):
       f.write('')
       f.close()
   if os.path.exists(env_path):
-    vars = dict_from_file(env_path)
-    vars[name] = data
+    env_vars = dict_from_file(env_path)
+    env_vars[name] = data
     with open(env_path, 'w') as f:
-      for key, value in vars.items():
+      for key, value in env_vars.items():
         f.write(f'{key}={value}\n')
   return web.json_response({'status': 'ok'})
 

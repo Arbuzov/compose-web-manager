@@ -1,10 +1,4 @@
-def DIST_REPO = [
-  'stretch':'scpc', 
-  'buster':'buster', 
-  'bullseye':'bullseye',
-  'bookworm':'bookworm-local'
-]
-
+DIST_NAME = 'bullseye'
 pipeline {
   agent none
   options {
@@ -31,19 +25,80 @@ pipeline {
         }
       }
     }
-    stage ('Record issues') {
+    stage ('Build project') {
       agent {
-          docker { image 'sonarsource/sonar-scanner-cli' }
+        dockerfile {
+          filename 'Dockerfile'
+        }
+      }
+      environment {
+        IS_DEVELOPMENT = "${((CHANGE_ID)||(GIT_BRANCH!='master'))}"
+        DEB_VERSION_SUFFIX="${DIST_NAME}${IS_DEVELOPMENT=='true'?'.dev':''}.${env.BUILD_NUMBER}"
       }
       steps {
-        unstash "report"
-        recordIssues(
-          aggregatingResults: true,
-           tools: [
-            pyLint(pattern: '*-pylint.log', reportEncoding: 'UTF-8')
-          ]
-        )
-      }         
+        sh """#!/bin/bash
+        sudo rm -fR deb_dist
+        sudo rm -fR deb
+        install -d -m 777 deb_dist
+        install -d -m 777 deb
+        """
+        
+        sh """#!/bin/bash
+        python3 setup.py --command-packages=stdeb3.command sdist_dsc \
+                          --debian-version=${DEB_VERSION_SUFFIX} \
+                          --dist-dir=${WORKSPACE}/deb_dist
+        cp -f ${WORKSPACE}/deploy/debian/* ${WORKSPACE}/deb_dist/compose-web-manager-*/debian/
+        cd ${WORKSPACE}/deb_dist/compose-web-manager-*/
+        dpkg-buildpackage -rfakeroot -uc -us
+        cp ${WORKSPACE}/deb_dist/*.deb ${WORKSPACE}/deb/
+        rm -fR ${WORKSPACE}/deb_dist
+        """
+        stash includes: 'deb/*.deb', name: "package"
+        
+      }
+      post {
+        failure {
+          archiveArtifacts artifacts: '**/**', fingerprint: false, onlyIfSuccessful: false
+          print "Delete all on failure"
+          cleanWs()
+          deleteDir()
+        }
+        success {
+          archiveArtifacts artifacts: 'deb/*.deb', fingerprint: false, onlyIfSuccessful: true
+          print "Delete all on success"
+          cleanWs()
+          deleteDir()
+        }
+      }
+    }
+    stage ('Push deb package to the repository') {
+      when { branch 'master' }
+      agent {
+        label 'local-deb-repo'
+      }
+      options { skipDefaultCheckout() }
+      steps {
+        sh """#!/bin/bash
+        rm -fR deb
+        """
+        unstash "package"
+        unstash "log"
+        dir ('deb') {
+          script {
+            readFile("${WORKSPACE}/deb/packages.log").split("\n").each{
+              sh "cd /data/debian/ && sudo reprepro remove ${DIST_REPO[DIST_NAME]} ${it.split('_')[0]}"
+              sh "sudo reprepro -C main -b /data/debian/ includedeb ${DIST_REPO[DIST_NAME]} ${it}"
+              sh "rm ${it}"
+            }
+          }
+        }
+      }
+      post {
+        cleanup {
+          cleanWs()
+          deleteDir()
+        }
+      }
     }
   }
 }
