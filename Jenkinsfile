@@ -82,14 +82,11 @@ pipeline {
         rm -fR deb
         """
         unstash "package"
-        unstash "log"
         dir ('deb') {
           script {
-            readFile("${WORKSPACE}/deb/packages.log").split("\n").each{
-              sh "cd /data/debian/ && sudo reprepro remove ${DIST_REPO[DIST_NAME]} ${it.split('_')[0]}"
-              sh "sudo reprepro -C main -b /data/debian/ includedeb ${DIST_REPO[DIST_NAME]} ${it}"
-              sh "rm ${it}"
-            }
+            sh "cd /data/debian/ && sudo reprepro remove ${DIST_NAME} python3-compose-web-manager"
+            sh "sudo reprepro -C main -b /data/debian/ includedeb ${DIST_NAME} python3-compose-web-manager*.deb"
+            sh "rm python3-compose-web-manager*.deb"
           }
         }
       }
