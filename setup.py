@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="compose-web-manager",
-    version="1.0.0",
+    version="1.1.0",
     maintainer="Serge Arbuzov",
     author_email="serge.arbuzov@spacebridge.com",
     maintainer_email="serge.arbuzov@spacebridge.com",
@@ -38,7 +38,7 @@ setup(
     ],
     entry_points={"console_scripts": ["compose-web-manager=compose_web_manager:main"]},
     project_urls={
-        "Source": "https://gitlab.asatnet.net/asat3/basic-sbc/web-manager-backend-python"
+        "Source": "https://gitlab.asatnet.net/asat3/basic-sbc/compose-manager-backend"
     },
     python_requires=">=3.5.1",
 )

@@ -72,6 +72,34 @@ class Plugin:
           with open(env_path) as f:
               result = dict_from_file(env_path)
       return result
+    
+  def get_info(self):
+      """
+      Get the information for a plugin.
+      """
+      result = {
+          'compose': '',
+          'environment': {},
+          'readme': '',
+          'manifest': {},
+          'dirty': False
+      }
+      compose_path = f'{SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml'
+      readme_path = f'{SB_COMPOSE_ROOT}/{self.name}/README.md'
+      manifest_path = f'{SB_COMPOSE_ROOT}/{self.name}/manifest.json'
+      if os.path.exists(compose_path):
+          with open(compose_path) as f:
+              result['compose'] = f.read()
+      result['environment'] = self.get_environment()
+      if os.path.exists(readme_path):
+          with open(readme_path) as f:
+              result['readme'] = f.read() 
+      if os.path.exists(manifest_path):
+          with open(manifest_path) as f:
+              result['manifest'] = json.load(f)
+      if os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty'):
+          result['dirty'] = True
+      return result
       
   def load_images(self):
       """

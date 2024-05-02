@@ -29,7 +29,7 @@ class HttpService:
         for route in routes:
             self.app.router.add_route(route[0], route[1], route[2])
         try:
-            api_config = "/etc1/spacebridge/compose-manager/swagger.v1.yaml"
+            api_config = "/etc/spacebridge/compose-manager/swagger.v1.yaml"
             if not os.path.isfile(api_config):
                 api_config = "../config/swagger.v1.yaml"
                 logger.info(f"API description file: {api_config}")

@@ -53,30 +53,8 @@ async def add_plugin(request):
   return web.json_response({'status': 'ok'})
 
 def get_plugin(request):
-  result={
-    'compose': '',
-    'environment': {},
-    'readme': '',
-    'manifest': {},
-    'dirty': False
-  }
-  plugin = request.match_info['plugin']
-  compose_path = f'{SB_COMPOSE_ROOT}/{plugin}/docker-compose.yml'
-  env_path = f'{SB_COMPOSE_ROOT}/{plugin}/.env'
-  readme_path = f'{SB_COMPOSE_ROOT}/{plugin}/README.md'
-  manifest_path = f'{SB_COMPOSE_ROOT}/{plugin}/manifest.json'
-  if os.path.exists(compose_path):
-    with open(compose_path) as f:
-      result['compose'] = f.read()
-  result['environment'] = dict_from_file(env_path)
-  if os.path.exists(readme_path):
-    with open(readme_path) as f:
-      result['readme'] = f.read()
-  if os.path.exists(manifest_path):
-    with open(manifest_path) as f:
-      result['manifest'] = json.load(f)
-  if os.path.exists(f'{SB_COMPOSE_ROOT}/{plugin}/.dirty'):
-    result['dirty'] = True
+  plugin = Plugin(request.match_info['plugin'])
+  result = plugin.get_info()
   return web.json_response(result)
 
 def start_plugin(request):
