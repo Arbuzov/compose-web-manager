@@ -4,21 +4,16 @@ import os
 import tarfile
 from aiohttp import web
 
-from compose_web_manager.plugin import Plugin, dict_from_file
+from compose_web_manager.plugin import Plugin, SB_COMPOSE_ROOT
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
-SB_COMPOSE_ROOT = '/usr/share/spacebridge/docker'
 SB_REPO_LIST = '/usr/share/spacebridge/docker/repo_list.json'
 NGIX_SNIPPETS_PATH = '/etc/nginx/snippets'
 MANIFEST_FILE = 'manifest.json'
 
 def list_plugins(request):
-  result=[]
-  with os.scandir(SB_COMPOSE_ROOT) as it:
-    for entry in it:
-        if not entry.name.startswith('.') and entry.is_dir():
-            result.append(entry.name)
+  result=Plugin.list_plugins()
   return web.json_response(result)
 
 async def add_plugin(request):
@@ -88,23 +83,11 @@ def get_plugin_variable(request):
   return web.json_response(result)
 
 async def set_plugin_variable(request):
-  plugin_name = request.match_info['plugin']
+  plugin = Plugin(request.match_info['plugin'])
   name = request.match_info['name']
   data = await request.text()
   _LOGGER.debug(f'Setting {name} to {data}')
-  env_path = f'{SB_COMPOSE_ROOT}/{plugin_name}/.env'
-  if not os.path.exists(env_path):
-    with open(env_path, 'w') as f:
-      f.write('')
-      f.close()
-  if os.path.exists(env_path):
-    env_vars = dict_from_file(env_path)
-    env_vars[name] = data
-    with open(env_path, 'w') as f:
-      for key, value in env_vars.items():
-        f.write(f'{key}={value}\n')
-  plugin = Plugin(request.match_info['plugin'])
-  plugin.mark_dirty()
+  plugin.set_environment_variable(name, data)
   return web.json_response({'status': 'ok'})
 
 def get_repo_list(request):
@@ -122,11 +105,18 @@ async def add_repo(request):
       f.write(f'{data}\n')
   return web.json_response({'status': 'ok'})
 
+def logo(request):
+  plugin = Plugin(request.match_info['plugin'])
+  if not plugin.has_logo():
+    return web.Response(status=404)
+  return web.FileResponse(plugin.get_logo_path())
+
 routes = [
   ('GET', '/api/plugins', list_plugins),
   ('POST', '/api/plugins', add_plugin),
   ('GET', r'/api/plugins/{plugin:(\w|\-)*}', get_plugin),
   ('POST', r'/api/plugins/{plugin:(\w|\-)*}/start', start_plugin),
+  ('GET', r'/api/plugins/{plugin:(\w|\-)*}/logo', logo),
   ('POST', r'/api/plugins/{plugin:(\w|\-)*}/stop', stop_plugin),
   ('POST', r'/api/plugins/{plugin:(\w|\-)*}/restart', restart_plugin),
   ('DELETE', r'/api/plugins/{plugin:(\w|\-)*}', delete_plugin),

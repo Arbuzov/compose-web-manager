@@ -1,3 +1,4 @@
+import json
 import os
 import logging
 
@@ -19,6 +20,18 @@ class Plugin:
   
   def __init__(self, plugin_name):
     self.name = plugin_name
+    
+  @staticmethod
+  def list_plugins():
+    """
+    List all plugins.
+    """
+    result = []
+    with os.scandir(SB_COMPOSE_ROOT) as it:
+      for entry in it:
+        if not entry.name.startswith('.') and entry.is_dir():
+          result.append(entry.name)
+    return result
     
   def mark_dirty(self):
       """
@@ -45,8 +58,8 @@ class Plugin:
       """
       Start a plugin.
       """
-      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{plugin}/docker-compose.yml pull')
-      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{plugin}/docker-compose.yml up -d --force-recreate')
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml pull')
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml up -d --force-recreate')
       self.mark_clean()
   
   def stop(self):
@@ -72,6 +85,23 @@ class Plugin:
           with open(env_path) as f:
               result = dict_from_file(env_path)
       return result
+  
+  def set_environment_variable(self, name, value):
+        """
+        Set an environment variable for a plugin.
+        """
+        env_path = f'{SB_COMPOSE_ROOT}/{self.name}/.env'
+        if not os.path.exists(env_path):
+            with open(env_path, 'w') as f:
+                f.write('')
+                f.close()
+        if os.path.exists(env_path):
+            env_vars = dict_from_file(env_path)
+            env_vars[name] = value
+            with open(env_path, 'w') as f:
+                for key, value in env_vars.items():
+                    f.write(f'{key}={value}\n')
+        self.mark_dirty()
     
   def get_info(self):
       """
@@ -100,6 +130,18 @@ class Plugin:
       if os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty'):
           result['dirty'] = True
       return result
+
+  def has_logo(self):
+      """
+      Check if a plugin has a logo.
+      """
+      return os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}/logo.png')
+  
+  def get_logo_path(self):
+      """
+      Get the path to the logo for a plugin.
+      """
+      return f'{SB_COMPOSE_ROOT}/{self.name}/logo.png'
       
   def load_images(self):
       """
