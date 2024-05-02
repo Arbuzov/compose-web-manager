@@ -3,11 +3,24 @@ swagger: '2.0'
 basePath: /api
 info:
   title: Compose manager API.
-  version: 1.0.0
+  version: 1.1.0
 paths:
   /plugins:
     get:
       operationId: getPlugins
+    post:
+      operationId: addPlugin
+      parameters:
+        - name: plugin
+          in: formData
+          type: file
+          description: Zip archive contains the plugin and its dependencies.
+          required: true
+      responses:
+        '200':
+          description: Plugin added
+          schema:
+            $ref: '#/definitions/CommandResponce'
   /repository:
     get:
       operationId: getRepositories
@@ -27,6 +40,11 @@ paths:
         type: string
     get:
       opertionId: getPlugin
+      responses:
+        '200':
+          description: Plugin information
+          schema:
+            $ref: '#/definitions/Plugin'
     delete:
       operationId: removePlugin
   /plugins/{plugin}/start:
@@ -85,3 +103,34 @@ paths:
           required: true
           type: string
       opertionId: setPluginEnvironmentValue
+definitions:
+  CommandResponce:
+    type: object
+    required:
+    - status
+    - message
+    properties:
+      status:
+        type: integer
+      message:
+        type: string
+  Plugin:
+    type: object
+    required:
+    - name
+    - version
+    properties:
+      name:
+        type: string
+      version:
+        type: string
+      compose:
+        type: string
+      environment:
+        type: object
+      readme:
+        type: string
+      manifest:
+        type: object
+      dirty:
+        type: boolean
