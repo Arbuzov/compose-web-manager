@@ -22,7 +22,7 @@ class Plugin:
     self.name = plugin_name
     
   @staticmethod
-  def list_plugins():
+  def list_plugins() -> list:
     """
     List all plugins.
     """
@@ -30,7 +30,8 @@ class Plugin:
     with os.scandir(SB_COMPOSE_ROOT) as it:
       for entry in it:
         if not entry.name.startswith('.') and entry.is_dir():
-          result.append(entry.name)
+          plugin = Plugin(entry.name)
+          result.append(plugin.get_manifest())
     return result
     
   def mark_dirty(self):
@@ -51,29 +52,30 @@ class Plugin:
       """
       Restart a plugin.
       """
-      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
-      os.system(f'docker compose up -d -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      self.stop()
+      self.start()
       self.mark_clean()
       
   def start(self):
       """
       Start a plugin.
       """
-      os.system(f'docker compose pull {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
-      os.system(f'docker compose up -d --force-recreate {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml pull --ignore-pull-failures')
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml up -d --remove-orphans')
       self.mark_clean()
   
   def stop(self):
       """
       Stop a plugin.
       """
-      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml stop')
   
   def delete(self):
       """
       Delete a plugin.
       """
-      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      self.stop
+      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml rm --force --stop')
       os.system(f'rm -rf {SB_COMPOSE_ROOT}/{self.name}')
       
   def get_environment(self):
@@ -131,6 +133,16 @@ class Plugin:
       if os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty'):
           result['dirty'] = True
       return result
+  
+  def get_manifest(self):
+        """
+        Get the manifest for a plugin.
+        """
+        manifest_path = f'{SB_COMPOSE_ROOT}/{self.name}/manifest.json'
+        if os.path.exists(manifest_path):
+            with open(manifest_path) as f:
+                return json.load(f)
+        return {"name": self.name}
 
   def has_logo(self):
       """
