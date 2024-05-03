@@ -47,6 +47,15 @@ paths:
             $ref: '#/definitions/Plugin'
     delete:
       operationId: removePlugin
+  /plugins/{plugin}/logo:
+    parameters:
+      - name: plugin
+        default: nms
+        in: path
+        required: true
+        type: string
+    get:
+      operationId: getPluginLogo
   /plugins/{plugin}/start:
     parameters:
       - name: plugin
