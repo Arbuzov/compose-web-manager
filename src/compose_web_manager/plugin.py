@@ -51,29 +51,29 @@ class Plugin:
       """
       Restart a plugin.
       """
-      os.system(f'docker-compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml down')
-      os.system(f'docker-compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml up -d')
+      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      os.system(f'docker compose up -d -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
       self.mark_clean()
       
   def start(self):
       """
       Start a plugin.
       """
-      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml pull')
-      os.system(f'docker compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml up -d --force-recreate')
+      os.system(f'docker compose pull {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
+      os.system(f'docker compose up -d --force-recreate {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
       self.mark_clean()
   
   def stop(self):
       """
       Stop a plugin.
       """
-      os.system(f'docker-compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml down')
+      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
   
   def delete(self):
       """
       Delete a plugin.
       """
-      os.system(f'docker-compose -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml down')
+      os.system(f'docker compose stop -f {SB_COMPOSE_ROOT}/{self.name}/docker-compose.yml')
       os.system(f'rm -rf {SB_COMPOSE_ROOT}/{self.name}')
       
   def get_environment(self):
