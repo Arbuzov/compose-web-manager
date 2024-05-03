@@ -44,7 +44,8 @@ class Plugin:
       """
       Mark a plugin as clean.
       """
-      os.remove(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty')
+      if os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty'):
+        os.remove(f'{SB_COMPOSE_ROOT}/{self.name}/.dirty')
       
   def restart(self):
       """
