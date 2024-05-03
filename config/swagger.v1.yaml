@@ -8,13 +8,20 @@ paths:
   /plugins:
     get:
       operationId: getPlugins
+      responses:
+        '200':
+          description: List of plugin manifests
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Manifest'
     post:
       operationId: addPlugin
       parameters:
         - name: plugin
           in: formData
           type: file
-          description: Zip archive contains the plugin and its dependencies.
+          description: Archive contains the plugin and its dependencies.
           required: true
       responses:
         '200':
@@ -123,6 +130,17 @@ definitions:
         type: integer
       message:
         type: string
+  Manifest:
+    type: object
+    required:
+    - name
+    properties:
+      name:
+        type: string
+      version:
+        type: string
+      description:
+        type: string
   Plugin:
     type: object
     required:
@@ -141,5 +159,6 @@ definitions:
         type: string
       manifest:
         type: object
+        $ref: '#/definitions/Manifest'
       dirty:
         type: boolean
