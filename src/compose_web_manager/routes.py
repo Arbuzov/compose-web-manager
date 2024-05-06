@@ -1,10 +1,9 @@
 import json
 import logging
 import os
-import tarfile
 from aiohttp import web
 
-from compose_web_manager.plugin import Plugin, SB_COMPOSE_ROOT
+from compose_web_manager.plugin import ManifestParseException, Plugin, SB_COMPOSE_ROOT
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
@@ -19,33 +18,19 @@ def list_plugins(request):
 async def add_plugin(request):
   data = await request.post()
   plugin = data['plugin']
+  apply_environment = data['applyEnvironment'] in ("True", "true", True)
   
   filename = plugin.filename
   update = open(os.path.join('/tmp', filename), 'wb')
   update.write(plugin.file.read())
   update.close()
   
-  file = tarfile.open(os.path.join('/tmp', filename))
   manifest = {}
-  if MANIFEST_FILE not in file.getnames():
-    return web.json_response({'status': 'error', 'message': f'Missing {MANIFEST_FILE}'})
-  else:
-    file.extract(MANIFEST_FILE,'/tmp')
-    with open(os.path.join('/tmp', MANIFEST_FILE)) as f:
-      manifest = json.load(f)
-      _LOGGER.debug(f'Manifest: {manifest}')
-  if 'name' not in manifest:
-    return web.json_response({'status': 'error', 'message': 'Missing name in manifest'})
-  if 'version' not in manifest:
-    return web.json_response({'status': 'error', 'message': 'Missing version in manifest'})
-  
-  file.extractall(os.path.join(SB_COMPOSE_ROOT, manifest['name']))
-  file.close()
-  
-  plugin = Plugin(manifest['name'])
-  plugin.load_images()
-  plugin.mark_dirty()
-  return web.json_response({'status': 'ok'})
+  try:
+    manifest = Plugin.load_plugin(os.path.join('/tmp', filename), apply_environment)
+  except ManifestParseException as e:
+    return web.json_response({'status': 'error', 'message': e.message})
+  return web.json_response({'status': 'ok', 'manifest': manifest})
 
 def get_plugin(request):
   plugin = Plugin(request.match_info['plugin'])

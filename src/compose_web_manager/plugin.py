@@ -1,10 +1,12 @@
 import json
 import os
 import logging
+import tarfile
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
+MANIFEST_FILE = 'manifest.json'
 SB_COMPOSE_ROOT = '/usr/share/spacebridge/docker'
 
 def dict_from_file(file_path):
@@ -15,6 +17,9 @@ def dict_from_file(file_path):
         key, value = line.split('=')
         result[key] = value.strip()
   return result
+
+class ManifestParseException(Exception):
+    pass
 
 class Plugin:
   
@@ -164,3 +169,41 @@ class Plugin:
         for image in os.listdir(f'{SB_COMPOSE_ROOT}/{self.name}/images'):
             _LOGGER.debug(f'Loading image {image}')
             os.system(f'docker load -i {SB_COMPOSE_ROOT}/{self.name}/images/{image}')
+            
+  def exists(self):
+      """
+      Check if a plugin exists.
+      """
+      return os.path.exists(f'{SB_COMPOSE_ROOT}/{self.name}')
+    
+  @staticmethod
+  def load_plugin(file_name, apply_environment):
+    file = tarfile.open(file_name)
+    manifest = {}
+    if MANIFEST_FILE not in file.getnames():
+        raise ManifestParseException(f'Missing {MANIFEST_FILE}')
+    else:
+        file.extract(MANIFEST_FILE,'/tmp')
+        with open(os.path.join('/tmp', MANIFEST_FILE)) as f:
+            manifest = json.load(f)
+            _LOGGER.debug(f'Manifest: {manifest}')
+    if 'name' not in manifest:
+        raise ManifestParseException('Missing name in manifest')
+    if 'version' not in manifest:
+        raise ManifestParseException('Missing version in manifest')
+    plugin = Plugin(manifest['name'])
+    environment = {}
+    _LOGGER.debug(f'exists: {plugin.exists()} apply {apply_environment}')
+    if plugin.exists() and not apply_environment:
+        environment = plugin.get_environment()
+    file.extractall(
+        path=os.path.join(SB_COMPOSE_ROOT, manifest['name'])
+    )
+    file.close()
+    if not apply_environment:
+        for key, value in environment.items():
+            plugin.set_environment_variable(key, value)
+    
+    plugin.load_images()
+    plugin.mark_dirty()
+    return manifest
