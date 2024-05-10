@@ -14,8 +14,9 @@ def dict_from_file(file_path):
   if os.path.exists(file_path):
     with open(file_path) as f:
       for line in f:
-        key, value = line.split('=')
-        result[key] = value.strip()
+        if '=' in line:
+            key, value = line.split('=')
+            result[key] = value.strip()
   return result
 
 class ManifestParseException(Exception):
