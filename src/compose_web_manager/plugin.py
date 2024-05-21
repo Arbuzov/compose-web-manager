@@ -37,7 +37,9 @@ class Plugin:
       for entry in it:
         if not entry.name.startswith('.') and entry.is_dir():
           plugin = Plugin(entry.name)
-          result.append(plugin.get_manifest())
+          manifest = plugin.get_manifest()
+          if (manifest.name == entry.name):
+            result.append(manifest)
     return result
     
   def mark_dirty(self):
