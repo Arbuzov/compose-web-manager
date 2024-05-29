@@ -38,7 +38,7 @@ class Plugin:
         if not entry.name.startswith('.') and entry.is_dir():
           plugin = Plugin(entry.name)
           manifest = plugin.get_manifest()
-          if (manifest.name == entry.name):
+          if (manifest.get('name') == entry.name):
             result.append(manifest)
     return result
     
