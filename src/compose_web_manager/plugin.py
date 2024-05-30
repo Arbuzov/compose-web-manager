@@ -8,6 +8,7 @@ _LOGGER.setLevel(logging.DEBUG)
 
 MANIFEST_FILE = 'manifest.json'
 SB_COMPOSE_ROOT = '/usr/share/spacebridge/docker'
+NGINX_SPACEBRIDGE_SNIPPETS = '/etc/nginx/snippets/spacebridge'
 
 def dict_from_file(file_path):
   result = {}
@@ -33,6 +34,8 @@ class Plugin:
     List all plugins.
     """
     result = []
+    if not os.path.exists(SB_COMPOSE_ROOT):
+        os.makedirs(SB_COMPOSE_ROOT)
     with os.scandir(SB_COMPOSE_ROOT) as it:
       for entry in it:
         if not entry.name.startswith('.') and entry.is_dir():
@@ -206,7 +209,10 @@ class Plugin:
     if not apply_environment:
         for key, value in environment.items():
             plugin.set_environment_variable(key, value)
-    
+    if os.path.exists(os.path.join(SB_COMPOSE_ROOT, manifest['name'], 'nginx')):
+        if not os.path.exists(NGINX_SPACEBRIDGE_SNIPPETS):
+            os.makedirs(NGINX_SPACEBRIDGE_SNIPPETS)
+        os.system(f'cp -rf {os.path.join(SB_COMPOSE_ROOT, manifest["name"], "nginx")}/* {NGINX_SPACEBRIDGE_SNIPPETS}')
     plugin.load_images()
     plugin.mark_dirty()
     return manifest
