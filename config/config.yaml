@@ -1,0 +1,9 @@
+path:
+  base: /
+  docs: /api/docs
+  compose: /usr/share/spacebridge/docker
+  nginx: /etc/nginx/snippets
+  swagger: /etc/spacebridge/compose-manager/swagger.v1.yaml
+server:
+  host: 0.0.0.0
+  port: 8888

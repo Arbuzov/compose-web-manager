@@ -41,7 +41,7 @@ class HttpService:
                 swagger_from_file=api_config,
             )
         except FileNotFoundError:
-            logger.warning("OpenAPI description not found API will be unavailable")
+            logger.warning("OpenAPI description not found")
 
         cors = aiohttp_cors.setup(
             self.app,

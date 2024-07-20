@@ -15,7 +15,9 @@ setup(
     data_files=[
         ("/lib/systemd/system", ["config/compose-web-manager.service"]),
         ("/etc/rsyslog.d/", ["config/16-sbc-compose-manager-backend.conf"]),
-        ("/etc/spacebridge/compose-manager/", ["config/swagger.v1.yaml"]),
+        ("/etc/spacebridge/compose-manager/",
+            ["config/swagger.v1.yaml", "config/config.yml"]
+        ),
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
