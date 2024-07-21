@@ -8,6 +8,9 @@ from aiohttp import web
 from aiohttp_swagger import setup_swagger
 
 from .routes import routes
+from .config import Config
+
+config = Config()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,11 +28,11 @@ class HttpService:
         self.runner = None
         self.api_base_url = '/'
         self.swagger_url = '/api/docs'
-        
+
         for route in routes:
             self.app.router.add_route(route[0], route[1], route[2])
         try:
-            api_config = "/etc/spacebridge/compose-manager/swagger.v1.yaml"
+            api_config = config.path.swagger
             if not os.path.isfile(api_config):
                 api_config = "../config/swagger.v1.yaml"
                 logger.info(f"API description file: {api_config}")
