@@ -36,7 +36,10 @@ async def add_plugin(request):
 
     manifest = {}
     try:
-        manifest = Plugin.load_plugin(os.path.join("/tmp", filename), apply_environment)
+        manifest = Plugin.load_plugin(
+            os.path.join("/tmp", filename),
+            apply_environment
+        )
     except ManifestParseException as e:
         return web.json_response({"status": "error", "message": e.message})
     return web.json_response({"status": "ok", "manifest": manifest})
@@ -88,24 +91,24 @@ async def set_plugin_variable(request):
     plugin = Plugin(request.match_info["plugin"])
     name = request.match_info["name"]
     data = await request.text()
-    _LOGGER.debug(f"Setting {name} to {data}")
+    _LOGGER.debug("Setting %s to %s", name, data)
     plugin.set_environment_variable(name, data)
     return web.json_response({"status": "ok"})
 
 
 def get_repo_list(request):
     result = []
-    if os.path.exists(SB_REPO_LIST):
-        with open(SB_REPO_LIST) as f:
+    if os.path.exists(REPO_LIST):
+        with open(REPO_LIST, encoding='utf-8') as f:
             result = json.load(f)
     return web.json_response(result)
 
 
 async def add_repo(request):
     data = await request.text()
-    _LOGGER.debug(f"Adding repo {data}")
-    if os.path.exists(SB_REPO_LIST):
-        with open(SB_REPO_LIST, "a") as f:
+    _LOGGER.debug("Adding repo %s", data)
+    if os.path.exists(REPO_LIST):
+        with open(REPO_LIST, "a", encoding='utf-8') as f:
             f.write(f"{data}\n")
     return web.json_response({"status": "ok"})
 
@@ -126,7 +129,11 @@ routes = [
     ("POST", r"/api/plugins/{plugin:(\w|\-)*}/stop", stop_plugin),
     ("POST", r"/api/plugins/{plugin:(\w|\-)*}/restart", restart_plugin),
     ("DELETE", r"/api/plugins/{plugin:(\w|\-)*}", delete_plugin),
-    ("GET", r"/api/plugins/{plugin:(\w|\-)*}/environment", get_plugin_environment),
+    (
+        "GET",
+        r"/api/plugins/{plugin:(\w|\-)*}/environment",
+        get_plugin_environment
+    ),
     (
         "GET",
         r"/api/plugins/{plugin:(\w|\-)*}/environment/{name:(\w|\-)*}",

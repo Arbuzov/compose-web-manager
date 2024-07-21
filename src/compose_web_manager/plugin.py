@@ -161,8 +161,8 @@ class Plugin:
             env_vars = dict_from_file(env_path)
             env_vars[name] = value
             with open(env_path, "w", encoding="utf-8") as f:
-                for key, value in env_vars.items():
-                    f.write(f"{key}={value}\n")
+                for key, env_value in env_vars.items():
+                    f.write(f"{key}={env_value}\n")
         self.mark_dirty()
 
     def get_info(self):
