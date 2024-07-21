@@ -35,7 +35,7 @@ class HttpService:
             api_config = config.path.swagger
             if not os.path.isfile(api_config):
                 api_config = "../config/swagger.v1.yaml"
-                logger.info(f"API description file: {api_config}")
+                logger.info("API description file: %s", api_config)
             setup_swagger(
                 self.app,
                 api_version="1.0.0",

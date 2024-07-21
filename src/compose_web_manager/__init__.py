@@ -1,7 +1,7 @@
 """
 Root module for the sbc web manager
 
-@author: Arbuzov Sergey <Serge.Arbuzov@spacebridge.com>
+@author: Arbuzov Sergey <info@whitediver.com>
 """
 
 import asyncio
@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 http = HttpService()
+
+__all__ = ["main"]
 
 
 async def kill_loop(loop):

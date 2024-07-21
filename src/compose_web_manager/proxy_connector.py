@@ -1,4 +1,7 @@
-"""This module works as proxy connector to import confd or sysrepo connection"""
+"""
+This module works as proxy connector
+to support the outdated libs
+"""
 
 import logging
 
